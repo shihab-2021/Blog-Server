@@ -238,6 +238,39 @@ const getUserProfileData = async (payload) => {
   return user;
 };
 
+const getAllUser = async () => {
+  const users = await User.find();
+
+  return users;
+};
+
+const getSingleUser = async (id) => {
+  const result = await User.findById(id);
+  return result;
+};
+
+const updateUser = async (id, payload) => {
+  const result = await User.findByIdAndUpdate(id, payload, {
+    runValidators: true,
+    new: true,
+  });
+  return result;
+};
+
+const deleteUser = async (id) => {
+  // update the isDelete in db
+  const updateIsDelete = await User.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return updateIsDelete;
+};
+
 export const authServices = {
   registerUser,
   oauthRegister,
@@ -245,4 +278,8 @@ export const authServices = {
   oauthLogin,
   refreshToken,
   getUserProfileData,
+  getAllUser,
+  getSingleUser,
+  updateUser,
+  deleteUser,
 };
