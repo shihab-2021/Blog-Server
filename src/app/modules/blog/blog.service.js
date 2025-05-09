@@ -247,6 +247,65 @@ const getBlogsByUser = async (userId) => {
   return blogs;
 };
 
+const suspendBlog = async (userData, id) => {
+  // checking blog exists
+  const blog = await Blog.isBlogExistsById(id);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Not Found Error: Blog does not exists!",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  // update the isPublic in db
+  const updateIsPublic = await Blog.findByIdAndUpdate(
+    id,
+    { isPublic: !blog?.isPublic },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return updateIsPublic;
+};
+
+const getAdminDashboardStats = async () => {
+  const totalUsers = await User.countDocuments({
+    role: "user",
+    isDeleted: false,
+  });
+  const totalAdmins = await User.countDocuments({
+    role: "admin",
+    isDeleted: false,
+  });
+
+  const blogs = await Blog.find({ isDeleted: false }).select(
+    "comment like dislike"
+  );
+
+  const totalBlogs = blogs.length;
+  const totalComments = blogs.reduce(
+    (acc, blog) => acc + blog.comment.length,
+    0
+  );
+  const totalLikes = blogs.reduce((acc, blog) => acc + blog.like.length, 0);
+  const totalDislikes = blogs.reduce(
+    (acc, blog) => acc + blog.dislike.length,
+    0
+  );
+
+  return {
+    totalUsers,
+    totalAdmins,
+    totalBlogs,
+    totalComments,
+    totalLikes,
+    totalDislikes,
+  };
+};
+
 export const blogServices = {
   createBlog,
   getASpecificBlog,
@@ -258,4 +317,6 @@ export const blogServices = {
   addLike,
   addDislike,
   getBlogsByUser,
+  suspendBlog,
+  getAdminDashboardStats,
 };

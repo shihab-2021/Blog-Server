@@ -11,6 +11,10 @@ router
   .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.createBlog);
 
 router
+  .route("/dashboard-stats")
+  .get(auth(USER_ROLE.admin), blogControllers.getAdminDashboardStats);
+
+router
   .route("/comment/:id")
   .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
   .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addComment);
@@ -19,6 +23,10 @@ router
   .route("/like/:id")
   // .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
   .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addLike);
+
+router
+  .route("/suspend/:id")
+  .put(auth(USER_ROLE.admin), blogControllers.suspendBlog);
 
 router
   .route("/dislike/:id")
