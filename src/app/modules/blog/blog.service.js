@@ -21,6 +21,16 @@ const createBlog = async (userData, payload) => {
   return result;
 };
 
+const getASpecificBlog = async (blogId) => {
+  const result = await Blog.findById(blogId).populate("author");
+
+  if (result === null) {
+    throw new Error("Blog does not exists!");
+  }
+
+  return result;
+};
+
 const updateBlog = async (userData, id, payload) => {
   // finding the user
   const user = await User.findOne({ email: userData.email });
@@ -109,4 +119,204 @@ const getAllBlogs = async (query) => {
   return result;
 };
 
-export const blogServices = { createBlog, updateBlog, deleteBlog, getAllBlogs };
+const addComment = async (userData, blogId, comment) => {
+  if (!comment) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Comment is required",
+      "NOT_FOUND_ERROR"
+    );
+  }
+  const blog = await Blog.findById(blogId);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Blog not found",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  const newComment = {
+    userId: userData.id,
+    comment: comment?.comment,
+    createdAt: new Date(),
+  };
+
+  blog.comment.push(newComment);
+  await blog.save();
+
+  return blog;
+};
+
+const getComments = async (blogId) => {
+  const blog = await Blog.findById(blogId)
+    .populate("comment.userId", "name email avatar") // Select only specific fields
+    .lean();
+
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Blog not found",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  const comments = blog.comment.filter((c) => !c.isSuspended);
+
+  return comments;
+};
+
+const addLike = async (userData, blogId) => {
+  const blog = await Blog.findById(blogId);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Blog not found",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  const userId = userData?.id.toString();
+
+  // Remove from dislikes if exists
+  blog.dislike = blog.dislike.filter(
+    (entry) => entry.userId.toString() !== userId
+  );
+
+  // Check if already liked
+  const alreadyLiked = blog.like.some(
+    (entry) => entry.userId.toString() === userId
+  );
+
+  if (alreadyLiked) {
+    // Unlike (toggle off)
+    blog.like = blog.like.filter((entry) => entry.userId.toString() !== userId);
+  } else {
+    // Add new like
+    blog.like.push({ userId, createdAt: new Date() });
+  }
+
+  await blog.save();
+
+  return blog;
+};
+
+const addDislike = async (userData, blogId) => {
+  const blog = await Blog.findById(blogId);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Blog not found",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  const userId = userData?.id.toString();
+
+  // Remove from likes if exists
+  blog.like = blog.like.filter((entry) => entry.userId.toString() !== userId);
+
+  // Check if already disliked
+  const alreadyDisliked = blog.dislike.some(
+    (entry) => entry.userId.toString() === userId
+  );
+
+  if (alreadyDisliked) {
+    // Remove dislike (toggle off)
+    blog.dislike = blog.dislike.filter(
+      (entry) => entry.userId.toString() !== userId
+    );
+  } else {
+    // Add new dislike
+    blog.dislike.push({ userId, createdAt: new Date() });
+  }
+
+  await blog.save();
+
+  return blog;
+};
+
+const getBlogsByUser = async (userId) => {
+  const blogs = await Blog.find({ author: userId, isDeleted: false })
+    .populate({
+      path: "author",
+      select: "name email role",
+    })
+    .lean();
+
+  return blogs;
+};
+
+const suspendBlog = async (userData, id) => {
+  // checking blog exists
+  const blog = await Blog.isBlogExistsById(id);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Not Found Error: Blog does not exists!",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  // update the isPublic in db
+  const updateIsPublic = await Blog.findByIdAndUpdate(
+    id,
+    { isPublic: !blog?.isPublic },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return updateIsPublic;
+};
+
+const getAdminDashboardStats = async () => {
+  const totalUsers = await User.countDocuments({
+    role: "user",
+    isDeleted: false,
+  });
+  const totalAdmins = await User.countDocuments({
+    role: "admin",
+    isDeleted: false,
+  });
+
+  const blogs = await Blog.find({ isDeleted: false }).select(
+    "comment like dislike"
+  );
+
+  const totalBlogs = blogs.length;
+  const totalComments = blogs.reduce(
+    (acc, blog) => acc + blog.comment.length,
+    0
+  );
+  const totalLikes = blogs.reduce((acc, blog) => acc + blog.like.length, 0);
+  const totalDislikes = blogs.reduce(
+    (acc, blog) => acc + blog.dislike.length,
+    0
+  );
+
+  return {
+    totalUsers,
+    totalAdmins,
+    totalBlogs,
+    totalComments,
+    totalLikes,
+    totalDislikes,
+  };
+};
+
+export const blogServices = {
+  createBlog,
+  getASpecificBlog,
+  updateBlog,
+  deleteBlog,
+  getAllBlogs,
+  addComment,
+  getComments,
+  addLike,
+  addDislike,
+  getBlogsByUser,
+  suspendBlog,
+  getAdminDashboardStats,
+};

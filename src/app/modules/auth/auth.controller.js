@@ -104,6 +104,59 @@ const getUserProfileData = catchAsync(async (req, res) => {
   });
 });
 
+const getAllUser = catchAsync(async (req, res) => {
+  const result = await authServices.getAllUser();
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Users fetched successfully!",
+    data: result,
+  });
+});
+
+const getSingleUser = catchAsync(async (req, res) => {
+  const result = await authServices.getSingleUser(req.params.id);
+
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "User Fetched successfully!",
+    data: result,
+  });
+});
+
+const updateUser = catchAsync(async (req, res) => {
+  const result = await authServices.updateUser(req.params.id, req.body);
+
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "User Updated successfully!",
+    data: result,
+  });
+});
+
+const deleteUser = catchAsync(async (req, res) => {
+  await authServices.deleteUser(req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "User deleted successfully!",
+    data: null,
+  });
+});
+
+const toggleUserRole = catchAsync(async (req, res) => {
+  console.log(req.body.email);
+  await authServices.toggleUserRole(req.body.email);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "User role updated!",
+    data: null,
+  });
+});
+
 export const authControllers = {
   registerUser,
   oauthRegister,
@@ -111,4 +164,9 @@ export const authControllers = {
   oauthLogin,
   refreshToken,
   getUserProfileData,
+  getAllUser,
+  getSingleUser,
+  updateUser,
+  deleteUser,
+  toggleUserRole,
 };

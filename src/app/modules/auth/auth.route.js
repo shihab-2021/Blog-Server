@@ -19,6 +19,16 @@ router
     authControllers.getUserProfileData
   );
 
+router.route("/users").get(auth(USER_ROLE.admin), authControllers.getAllUser);
+
 router.post("/refresh-token", authControllers.refreshToken);
+
+router.put("/user-role", auth(USER_ROLE.admin), authControllers.toggleUserRole);
+
+router
+  .route("/users/:id")
+  .get(auth(USER_ROLE.user, USER_ROLE.admin), authControllers.getSingleUser)
+  .put(auth(USER_ROLE.admin, USER_ROLE.user), authControllers.updateUser)
+  .delete(auth(USER_ROLE.admin), authControllers.deleteUser);
 
 export const authRoutes = router;

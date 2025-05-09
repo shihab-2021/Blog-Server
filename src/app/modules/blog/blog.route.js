@@ -5,16 +5,42 @@ import { USER_ROLE } from "../user/user.constant.js";
 
 const router = Router();
 
-router.route("/").post(
-  // auth(USER_ROLE.user, USER_ROLE.admin),
-  blogControllers.createBlog
-);
+router
+  .route("/")
+  .get(blogControllers.getAllBlogs)
+  .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.createBlog);
+
+router
+  .route("/dashboard-stats")
+  .get(auth(USER_ROLE.admin), blogControllers.getAdminDashboardStats);
+
+router
+  .route("/comment/:id")
+  .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
+  .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addComment);
+
+router
+  .route("/like/:id")
+  // .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
+  .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addLike);
+
+router
+  .route("/suspend/:id")
+  .put(auth(USER_ROLE.admin), blogControllers.suspendBlog);
+
+router
+  .route("/dislike/:id")
+  // .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
+  .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addDislike);
+
+router
+  .route("/userBlogs/:id")
+  .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getBlogsByUser);
 
 router
   .route("/:id")
+  .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getASpecificBlog)
   .patch(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.updateBlog)
   .delete(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.deleteBlog);
-
-router.route("/").get(blogControllers.getAllBlogs);
 
 export const blogRoutes = router;

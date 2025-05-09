@@ -16,13 +16,60 @@ const blogSchema = new Schema(
     },
     thumbnail: {
       type: String,
-      required: [true, "Please provide blog thumbnail"],
+      // required: [true, "Please provide blog thumbnail"],
     },
     author: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    comment: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        comment: {
+          type: String,
+          required: [true, "Please provide blog comment"],
+        },
+        isSuspended: {
+          type: Boolean,
+          default: false,
+        },
+        createdAt: {
+          type: Date,
+          require: true,
+        },
+      },
+    ],
+    like: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          require: true,
+        },
+      },
+    ],
+    dislike: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          require: true,
+        },
+      },
+    ],
     tags: [
       {
         type: String,

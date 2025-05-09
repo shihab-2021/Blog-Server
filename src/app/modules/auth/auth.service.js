@@ -238,6 +238,69 @@ const getUserProfileData = async (payload) => {
   return user;
 };
 
+const getAllUser = async () => {
+  const users = await User.find();
+
+  return users;
+};
+
+const getSingleUser = async (id) => {
+  const result = await User.findById(id);
+  return result;
+};
+
+const updateUser = async (id, payload) => {
+  const result = await User.findByIdAndUpdate(id, payload, {
+    runValidators: true,
+    new: true,
+  });
+  return result;
+};
+
+const deleteUser = async (id) => {
+  // update the isDelete in db
+  const updateIsDelete = await User.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return updateIsDelete;
+};
+
+const toggleUserRole = async (email) => {
+  if (!email) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST: Email is required!",
+      "BAD_REQUEST"
+    );
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user || user.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT_FOUND: User not found!",
+      "NOT_FOUND"
+    );
+  }
+
+  const newRole = user.role === "user" ? "admin" : "user";
+
+  const updatedUser = await User.findOneAndUpdate(
+    { email },
+    { role: newRole },
+    { new: true }
+  );
+
+  return updatedUser;
+};
+
 export const authServices = {
   registerUser,
   oauthRegister,
@@ -245,4 +308,9 @@ export const authServices = {
   oauthLogin,
   refreshToken,
   getUserProfileData,
+  getAllUser,
+  getSingleUser,
+  updateUser,
+  deleteUser,
+  toggleUserRole,
 };

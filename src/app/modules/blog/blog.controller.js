@@ -13,6 +13,16 @@ const createBlog = catchAsync(async (req, res) => {
   });
 });
 
+const getASpecificBlog = catchAsync(async (req, res) => {
+  const result = await blogServices.getASpecificBlog(req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Blog updated successfully!",
+    data: result,
+  });
+});
+
 const updateBlog = catchAsync(async (req, res) => {
   const result = await blogServices.updateBlog(
     req.user,
@@ -47,9 +57,87 @@ const getAllBlogs = catchAsync(async (req, res) => {
   });
 });
 
+const addComment = catchAsync(async (req, res) => {
+  await blogServices.addComment(req.user, req.params.id, req.body);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Comment added successfully!",
+    data: null,
+  });
+});
+
+const getComments = catchAsync(async (req, res) => {
+  const result = await blogServices.getComments(req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Comment fetched successfully!",
+    data: result,
+  });
+});
+
+const addLike = catchAsync(async (req, res) => {
+  await blogServices.addLike(req.user, req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Like added successfully!",
+    data: null,
+  });
+});
+
+const addDislike = catchAsync(async (req, res) => {
+  await blogServices.addDislike(req.user, req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Like added successfully!",
+    data: null,
+  });
+});
+
+const getBlogsByUser = catchAsync(async (req, res) => {
+  const result = await blogServices.getBlogsByUser(req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Blog fetched successfully!",
+    data: result,
+  });
+});
+
+const suspendBlog = catchAsync(async (req, res) => {
+  await blogServices.suspendBlog(req.user, req.params.id);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Blog suspend updated!",
+    data: null,
+  });
+});
+
+const getAdminDashboardStats = catchAsync(async (req, res) => {
+  const result = await blogServices.getAdminDashboardStats();
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Blog fetched successfully!",
+    data: result,
+  });
+});
+
 export const blogControllers = {
   createBlog,
+  getASpecificBlog,
   updateBlog,
   deleteBlog,
   getAllBlogs,
+  addComment,
+  getComments,
+  addLike,
+  addDislike,
+  getBlogsByUser,
+  suspendBlog,
+  getAdminDashboardStats,
 };
