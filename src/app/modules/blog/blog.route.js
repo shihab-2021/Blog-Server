@@ -29,6 +29,10 @@ router
   .put(auth(USER_ROLE.admin), blogControllers.suspendBlog);
 
 router
+  .route("/comment-suspend/blog/:blogId/comment/:commentId")
+  .put(auth(USER_ROLE.admin), blogControllers.suspendCommentOnBlog);
+
+router
   .route("/dislike/:id")
   // .get(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.getComments)
   .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.addDislike);

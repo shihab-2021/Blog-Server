@@ -127,6 +127,19 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
   });
 });
 
+const suspendCommentOnBlog = catchAsync(async (req, res) => {
+  await blogServices.suspendCommentOnBlog(
+    req.params.blogId,
+    req.params.commentId
+  );
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Comment suspend updated!",
+    data: null,
+  });
+});
+
 export const blogControllers = {
   createBlog,
   getASpecificBlog,
@@ -140,4 +153,5 @@ export const blogControllers = {
   getBlogsByUser,
   suspendBlog,
   getAdminDashboardStats,
+  suspendCommentOnBlog,
 };

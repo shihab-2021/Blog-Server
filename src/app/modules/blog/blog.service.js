@@ -244,7 +244,7 @@ const getBlogsByUser = async (userId) => {
     })
     .lean();
 
-  return blogs;
+  return blogs.reverse();
 };
 
 const suspendBlog = async (userData, id) => {
@@ -306,6 +306,41 @@ const getAdminDashboardStats = async () => {
   };
 };
 
+const suspendCommentOnBlog = async (blogId, commentId) => {
+  if (!blogId || !commentId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST Error: blogId and commentId are required",
+      "BAD_REQUEST"
+    );
+  }
+
+  const blog = await Blog.findById(blogId);
+
+  if (!blog || blog.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT FOUND Error: Blog not found or deleted",
+      "NOT_FOUND"
+    );
+  }
+
+  const comment = blog.comment.id(commentId);
+
+  if (!comment) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT FOUND Error: Comment not found",
+      "NOT_FOUND"
+    );
+  }
+
+  comment.isSuspended = !comment.isSuspended;
+  await blog.save();
+
+  return blog;
+};
+
 export const blogServices = {
   createBlog,
   getASpecificBlog,
@@ -319,4 +354,5 @@ export const blogServices = {
   getBlogsByUser,
   suspendBlog,
   getAdminDashboardStats,
+  suspendCommentOnBlog,
 };
