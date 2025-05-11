@@ -127,6 +127,29 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
   });
 });
 
+const suspendCommentOnBlog = catchAsync(async (req, res) => {
+  await blogServices.suspendCommentOnBlog(
+    req.params.blogId,
+    req.params.commentId
+  );
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Comment suspend updated!",
+    data: null,
+  });
+});
+
+const getAllBlogsForAdmin = catchAsync(async (req, res) => {
+  const result = await blogServices.getAllBlogsForAdmin(req.query);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "Blogs fetched successfully!",
+    data: result,
+  });
+});
+
 export const blogControllers = {
   createBlog,
   getASpecificBlog,
@@ -140,4 +163,6 @@ export const blogControllers = {
   getBlogsByUser,
   suspendBlog,
   getAdminDashboardStats,
+  suspendCommentOnBlog,
+  getAllBlogsForAdmin,
 };
