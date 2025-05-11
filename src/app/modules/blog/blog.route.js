@@ -11,6 +11,10 @@ router
   .post(auth(USER_ROLE.user, USER_ROLE.admin), blogControllers.createBlog);
 
 router
+  .route("/admin/blogs")
+  .get(auth(USER_ROLE.admin), blogControllers.getAllBlogsForAdmin);
+
+router
   .route("/dashboard-stats")
   .get(auth(USER_ROLE.admin), blogControllers.getAdminDashboardStats);
 

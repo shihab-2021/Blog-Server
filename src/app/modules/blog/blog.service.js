@@ -107,7 +107,10 @@ const deleteBlog = async (userData, id) => {
 
 const getAllBlogs = async (query) => {
   const searchableFields = ["title", "content"];
-  const blogs = new QueryBuilder(Blog.find(), query)
+  const blogs = new QueryBuilder(
+    Blog.find({ isPublic: true, isDeleted: false }),
+    query
+  )
     .search(searchableFields)
     .sort()
     .filter();
@@ -341,6 +344,20 @@ const suspendCommentOnBlog = async (blogId, commentId) => {
   return blog;
 };
 
+const getAllBlogsForAdmin = async (query) => {
+  const searchableFields = ["title", "content"];
+  const blogs = new QueryBuilder(Blog.find(), query)
+    .search(searchableFields)
+    .sort()
+    .filter();
+
+  const result = await blogs.modelQuery.populate({
+    path: "author",
+    select: "name email role",
+  });
+  return result;
+};
+
 export const blogServices = {
   createBlog,
   getASpecificBlog,
@@ -355,4 +372,5 @@ export const blogServices = {
   suspendBlog,
   getAdminDashboardStats,
   suspendCommentOnBlog,
+  getAllBlogsForAdmin,
 };
