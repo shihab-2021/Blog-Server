@@ -107,7 +107,10 @@ const deleteBlog = async (userData, id) => {
 
 const getAllBlogs = async (query) => {
   const searchableFields = ["title", "content"];
-  const blogs = new QueryBuilder(Blog.find(), query)
+  const blogs = new QueryBuilder(
+    Blog.find({ isPublic: true, isDeleted: false }),
+    query
+  )
     .search(searchableFields)
     .sort()
     .filter();
@@ -244,7 +247,115 @@ const getBlogsByUser = async (userId) => {
     })
     .lean();
 
-  return blogs;
+  return blogs.reverse();
+};
+
+const suspendBlog = async (userData, id) => {
+  // checking blog exists
+  const blog = await Blog.isBlogExistsById(id);
+  if (!blog) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Not Found Error: Blog does not exists!",
+      "NOT_FOUND_ERROR"
+    );
+  }
+
+  // update the isPublic in db
+  const updateIsPublic = await Blog.findByIdAndUpdate(
+    id,
+    { isPublic: !blog?.isPublic },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return updateIsPublic;
+};
+
+const getAdminDashboardStats = async () => {
+  const totalUsers = await User.countDocuments({
+    role: "user",
+    isDeleted: false,
+  });
+  const totalAdmins = await User.countDocuments({
+    role: "admin",
+    isDeleted: false,
+  });
+
+  const blogs = await Blog.find({ isDeleted: false }).select(
+    "comment like dislike"
+  );
+
+  const totalBlogs = blogs.length;
+  const totalComments = blogs.reduce(
+    (acc, blog) => acc + blog.comment.length,
+    0
+  );
+  const totalLikes = blogs.reduce((acc, blog) => acc + blog.like.length, 0);
+  const totalDislikes = blogs.reduce(
+    (acc, blog) => acc + blog.dislike.length,
+    0
+  );
+
+  return {
+    totalUsers,
+    totalAdmins,
+    totalBlogs,
+    totalComments,
+    totalLikes,
+    totalDislikes,
+  };
+};
+
+const suspendCommentOnBlog = async (blogId, commentId) => {
+  if (!blogId || !commentId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST Error: blogId and commentId are required",
+      "BAD_REQUEST"
+    );
+  }
+
+  const blog = await Blog.findById(blogId);
+
+  if (!blog || blog.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT FOUND Error: Blog not found or deleted",
+      "NOT_FOUND"
+    );
+  }
+
+  const comment = blog.comment.id(commentId);
+
+  if (!comment) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT FOUND Error: Comment not found",
+      "NOT_FOUND"
+    );
+  }
+
+  comment.isSuspended = !comment.isSuspended;
+  await blog.save();
+
+  return blog;
+};
+
+const getAllBlogsForAdmin = async (query) => {
+  const searchableFields = ["title", "content"];
+  const blogs = new QueryBuilder(Blog.find(), query)
+    .search(searchableFields)
+    .sort()
+    .filter();
+
+  const result = await blogs.modelQuery.populate({
+    path: "author",
+    select: "name email role",
+  });
+  return result;
 };
 
 export const blogServices = {
@@ -258,4 +369,8 @@ export const blogServices = {
   addLike,
   addDislike,
   getBlogsByUser,
+  suspendBlog,
+  getAdminDashboardStats,
+  suspendCommentOnBlog,
+  getAllBlogsForAdmin,
 };

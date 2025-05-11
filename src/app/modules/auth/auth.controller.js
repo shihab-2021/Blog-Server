@@ -146,6 +146,17 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+const toggleUserRole = catchAsync(async (req, res) => {
+  console.log(req.body.email);
+  await authServices.toggleUserRole(req.body.email);
+  sendResponse(res, {
+    status: true,
+    statusCode: StatusCodes.OK,
+    message: "User role updated!",
+    data: null,
+  });
+});
+
 export const authControllers = {
   registerUser,
   oauthRegister,
@@ -157,4 +168,5 @@ export const authControllers = {
   getSingleUser,
   updateUser,
   deleteUser,
+  toggleUserRole,
 };

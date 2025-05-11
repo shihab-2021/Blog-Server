@@ -271,6 +271,36 @@ const deleteUser = async (id) => {
   return updateIsDelete;
 };
 
+const toggleUserRole = async (email) => {
+  if (!email) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST: Email is required!",
+      "BAD_REQUEST"
+    );
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user || user.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "NOT_FOUND: User not found!",
+      "NOT_FOUND"
+    );
+  }
+
+  const newRole = user.role === "user" ? "admin" : "user";
+
+  const updatedUser = await User.findOneAndUpdate(
+    { email },
+    { role: newRole },
+    { new: true }
+  );
+
+  return updatedUser;
+};
+
 export const authServices = {
   registerUser,
   oauthRegister,
@@ -282,4 +312,5 @@ export const authServices = {
   getSingleUser,
   updateUser,
   deleteUser,
+  toggleUserRole,
 };
